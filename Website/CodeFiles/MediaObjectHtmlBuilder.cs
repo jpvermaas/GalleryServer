@@ -386,7 +386,36 @@ namespace GalleryServer.Web
         queryString = $"q={Utils.UrlEncode(HelperFunctions.Encrypt(queryString))}";
       }
 
-      return String.Concat(HostUrl, GalleryRoot, "/handler/getmedia.ashx?", queryString);
+      var url = String.Concat(HostUrl, GalleryRoot, "/handler/getmedia.ashx?", queryString);
+
+      // The version sits outside the (possibly encrypted) query string; getmedia.ashx ignores parameters it doesn't recognize.
+      var version = GetFileVersion();
+
+      return (version > 0 ? String.Concat(url, "&v=", version.ToString(CultureInfo.InvariantCulture)) : url);
+    }
+
+    /// <summary>
+    /// Gets the last write time of the file behind <see cref="DisplayObject" /> in seconds since 1970-01-01 UTC. Added to the URL
+    /// so a browser fetches a replaced file (e.g. a regenerated thumbnail) instead of reusing its cached copy. Returns 0 when the
+    /// file is unknown or missing.
+    /// </summary>
+    private long GetFileVersion()
+    {
+      try
+      {
+        var path = DisplayObject.FileNamePhysicalPath;
+
+        if (String.IsNullOrEmpty(path))
+          return 0;
+
+        var seconds = (long)(System.IO.File.GetLastWriteTimeUtc(path) - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
+
+        return Math.Max(seconds, 0); // A missing file reports a date in 1601, which would be negative here.
+      }
+      catch (Exception ex) when (ex is System.IO.IOException || ex is ArgumentException || ex is UnauthorizedAccessException || ex is NotSupportedException)
+      {
+        return 0;
+      }
     }
 
     /// <summary>
