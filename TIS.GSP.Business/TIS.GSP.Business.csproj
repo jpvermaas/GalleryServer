@@ -75,6 +75,9 @@
       <SpecificVersion>False</SpecificVersion>
       <Private>True</Private>
     </Reference>
+    <Reference Include="PdfiumViewer">
+      <HintPath>..\packages\PdfiumViewer.2.13.0.0\lib\net20\PdfiumViewer.dll</HintPath>
+    </Reference>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
@@ -156,6 +159,7 @@
     <Compile Include="GalleryControlSettings.cs" />
     <Compile Include="GalleryControlSettingsCollection.cs" />
     <Compile Include="ImageMagick.cs" />
+    <Compile Include="PdfRenderer.cs" />
     <Compile Include="FFmpeg.cs" />
     <Compile Include="Metadata\MetadataDefinition.cs" />
     <Compile Include="VideoThumbnailCreator.cs" />

@@ -51,7 +51,13 @@ namespace GalleryServer.Business
 				newFilePath = Path.Combine(thumbnailPath, newFilename);
 			}
 
-			if (Array.IndexOf<string>(gallerySetting.ImageMagickFileTypes, Path.GetExtension(GalleryObject.Original.FileName).ToLowerInvariant()) >= 0)
+			var fileExtension = Path.GetExtension(GalleryObject.Original.FileName).ToLowerInvariant();
+
+			if (fileExtension == ".pdf" && GenerateThumbnailImageUsingPdfium(newFilePath, gallerySetting))
+			{
+				// Thumbnail created from the first page of the PDF without needing an external executable.
+			}
+			else if (Array.IndexOf<string>(gallerySetting.ImageMagickFileTypes, fileExtension) >= 0)
 			{
 				GenerateThumbnailImageUsingImageMagick(newFilePath, gallerySetting);
 			}
@@ -66,6 +72,41 @@ namespace GalleryServer.Business
 			int fileSize = (int)(GalleryObject.Thumbnail.FileInfo.Length / 1024);
 
 			GalleryObject.Thumbnail.FileSizeKB = (fileSize < 1 ? 1 : fileSize); // Very small files should be 1, not 0.
+		}
+
+		/// <summary>
+		/// Create the thumbnail from the first page of the PDF using PDFium. Returns <c>false</c> when PDFium is not available or
+		/// could not render the file, in which case nothing has been written and the caller should try another method.
+		/// </summary>
+		private bool GenerateThumbnailImageUsingPdfium(string newFilePath, IGallerySettings gallerySetting)
+		{
+			// Render at twice the target size and let the resize below scale it down for a smoother result.
+			using (var pdfBitmap = PdfRenderer.RenderFirstPage(GalleryObject.Original.FileNamePhysicalPath, gallerySetting.MaxThumbnailLength * 2, GalleryObject.GalleryId))
+			{
+				if (pdfBitmap == null)
+				{
+					return false;
+				}
+
+				try
+				{
+					var newSize = CalculateWidthAndHeight(new System.Windows.Size(pdfBitmap.Width, pdfBitmap.Height), gallerySetting.MaxThumbnailLength, false);
+
+					var size = ImageHelper.SaveImageFile(pdfBitmap, newFilePath, ImageFormat.Jpeg, newSize.Width, newSize.Height, gallerySetting.ThumbnailImageJpegQuality);
+
+					GalleryObject.Thumbnail.Width = (int)size.Width;
+					GalleryObject.Thumbnail.Height = (int)size.Height;
+
+					return true;
+				}
+				catch (Exception ex)
+				{
+					ex.Data.Add("GSP Info", String.Format("This error occurred while trying to save the thumbnail rendered by PDFium for the file {0}. A different thumbnail method or a generic thumbnail image will be used instead.", GalleryObject.Original.FileNamePhysicalPath));
+					Events.EventController.RecordError(ex, AppSetting.Instance, GalleryObject.GalleryId, Factory.LoadGallerySettings());
+
+					return false;
+				}
+			}
 		}
 
 		private void GenerateThumbnailImageUsingImageMagick(string newFilePath, IGallerySettings gallerySetting)
