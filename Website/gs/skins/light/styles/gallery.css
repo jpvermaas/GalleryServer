@@ -392,6 +392,11 @@ input[type=checkbox].gs_use_font:focus ~ label:before { border: 1px dotted #000;
 .gsp_ns .gsp_mvMediaView .mce-content-body:not(.mce-edit-focus) a:hover { cursor: pointer; }
 .gsp_ns .gsp_mvMediaView .mce-edit-focus { border: 1px dashed #4a4a4a; }
 .gsp_ns .gsp_moContainer { text-align: center; overflow: auto; }
+/* Document viewers (PDF, text, HTML) fill the center pane instead of the fixed size in the media template. Unsupported browsers keep the template size. */
+.gsp_ns #gsp_g_mediaHtml:has(.gsp_moContainer > iframe[src*="getmedia.ashx"]) { height: 100%; }
+.gsp_ns .gsp_mvMediaView:has(> .gsp_moContainer > iframe[src*="getmedia.ashx"]) { display: flex; flex-direction: column; height: 100%; }
+.gsp_ns .gsp_mvMediaView:has(> .gsp_moContainer > iframe[src*="getmedia.ashx"]) > .gsp_moContainer { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.gsp_ns .gsp_moContainer > iframe[src*="getmedia.ashx"] { flex: 1 1 auto; box-sizing: border-box; width: 100% !important; height: auto !important; min-height: 600px; }
 
 .gsp_ns div.gsp_content div#divOkCancel { border-bottom: #a7a7a7 2px solid; width: auto; text-align: right; }
 .gsp_ns div.gsp_content p.gsp_taskBody { padding: 0 0 0.3em 0; width: 60%; border-bottom: #a7a7a7 1px solid; }
