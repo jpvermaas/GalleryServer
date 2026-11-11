@@ -206,6 +206,7 @@
     <Content Include="gs\skins\dark\images\move-updown-s-o.png" />
     <Content Include="gs\skins\dark\images\net4_browser_ids.png" />
     <Content Include="default.aspx" />
+    <Content Include="storing.html" />
     <Content Include="gs\controls\albumtreeview.ascx" />
     <Content Include="gs\controls\mediaview.ascx" />
     <Content Include="gs\script\grid.js" />
